@@ -6,10 +6,11 @@
 </div>
 
 <div class="container">
-    <form id="">
+    <form action="{% url 'sharePost' %}" method="post">
+        {% csrf_token %}
         <div class="mb-3">
             <label class="form-label">New Post</label>
-            <textarea class="form-control" id="" rows="3"></textarea>
+            <textarea class="form-control" id="" rows="3" name="post"></textarea>
         </div>
         <input type="submit" class="btn btn-primary" value="Post" id=""/>
     </form>

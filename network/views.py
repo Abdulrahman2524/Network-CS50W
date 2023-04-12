@@ -8,7 +8,7 @@ from .models import *
 
 
 def index(request):
-    all_posts = newPost.objects.all()
+    all_posts = newPost.objects.all().order_by('-date')
     return render(request, "network/index.html",{
         "posts": all_posts,
     })
@@ -78,3 +78,14 @@ def sharePost(request):
 
     else:
         return HttpResponseRedirect(reverse("index"))
+
+def profile(request, id):
+    all_posts = newPost.objects.filter(user=request.user).order_by('-date')
+    following = UserFollowing.objects.filter(user_id=id)
+    followers = UserFollowing.objects.filter(following_user_id = id)
+    return render(request, "network/profile.html",{
+        "posts": all_posts,
+        "following": following.count(),
+        "followers" : followers.count(),
+        "id": id,
+    })

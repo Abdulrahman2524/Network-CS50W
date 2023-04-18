@@ -3,7 +3,12 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+import json
+from django.core import serializers
+from . import views
 from .models import *
 
 
@@ -64,7 +69,8 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
-
+    
+@login_required
 def sharePost(request):
     if request.method == "POST":
         user = request.user
@@ -78,14 +84,57 @@ def sharePost(request):
 
     else:
         return HttpResponseRedirect(reverse("index"))
-
+    
+@login_required
 def profile(request, id):
-    all_posts = newPost.objects.filter(user=request.user).order_by('-date')
+    all_posts = newPost.objects.filter(user=id).order_by('-date')
     following = UserFollowing.objects.filter(user_id=id)
     followers = UserFollowing.objects.filter(following_user_id = id)
+    username = User.objects.get(id=id)
     return render(request, "network/profile.html",{
         "posts": all_posts,
         "following": following.count(),
         "followers" : followers.count(),
         "id": id,
+        "username": username.username
     })
+
+@csrf_exempt
+@login_required
+def show_follower(request, id):
+
+    try:
+        user = UserFollowing.objects.get(user_id=request.user.id, following_user_id=id)
+        
+    except UserFollowing.DoesNotExist:
+        return JsonResponse({"error": "Not found."}, status=404)
+    
+    if request.method == "GET":
+        return JsonResponse(user.serialize())
+    
+    
+@csrf_exempt
+@login_required
+def follow(request, id):
+
+    if request.method == "POST":
+        data = json.loads(request.body)
+        following_list = UserFollowing.objects.filter(user_id=request.user, following_user_id=data['following_user_id']).count()
+        follower = User.objects.get(pk=data['following_user_id'])
+        if following_list == 0:
+            UserFollowing.objects.create(user_id=request.user, following_user_id=follower)
+            print(following_list)
+        else:
+            print("in It")
+
+        return HttpResponse(status=204)
+
+@csrf_exempt
+@login_required
+def unFollow(request, id):
+        
+    if request.method == "POST":
+        data = json.loads(request.body)
+        UserFollowing.objects.get(user_id=request.user, following_user_id=data['following_user_id']).delete()
+
+        return HttpResponse(status=204)

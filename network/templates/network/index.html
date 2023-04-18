@@ -1,5 +1,5 @@
 {% extends "network/layout.html" %}
-
+{% load static %}
 {% block body %}
 <div class="container">
     <h2>All Posts</h2>
@@ -21,7 +21,7 @@
     {% for post in posts %}
     <div class="card border-primary mb-3" style="max-width: 100%;">
         <div class="card-body text-dark">
-          <h5 class="card-title ">{{ post.user }}</h5>
+          <h5 class="card-title"><a href="{% url 'profile' id=post.user.id%}"> {{ post.user }}</a></h5>
           <p class="card-text">{{ post.text }}</p>
           <p class="card-text"><small class="text-body-secondary ">{{ post.date }}</small></p>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
@@ -32,8 +32,9 @@
           </svg>-->
         </div>
     </div>
-    
-
     {% endfor %}
 </div>
+{% endblock %}
+{% block script %}
+    <script src="{% static 'network/index.js' %}"></script>
 {% endblock %}

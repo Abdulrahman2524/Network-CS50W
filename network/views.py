@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -7,8 +8,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import json
-from django.core import serializers
-from . import views
 from .models import *
 
 
@@ -16,6 +15,7 @@ def index(request):
     all_posts = newPost.objects.all().order_by('-date')
     return render(request, "network/index.html",{
         "posts": all_posts,
+        "message": "All Posts",
     })
 
 
@@ -138,3 +138,21 @@ def unFollow(request, id):
         UserFollowing.objects.get(user_id=request.user, following_user_id=data['following_user_id']).delete()
 
         return HttpResponse(status=204)
+
+@login_required
+def followingPosts(request):
+
+    user = UserFollowing.objects.filter(user_id=request.user).values_list("following_user_id", flat=True)
+    following_post = []
+    for i in range(len(user)):
+
+        new = newPost.objects.filter(user=user[i]).order_by('-date')
+        for i in new:
+
+            following_post.append(i)
+               
+    
+    return render(request, "network/index.html",{
+        "posts": following_post,
+        "message": "Following Posts",
+    })

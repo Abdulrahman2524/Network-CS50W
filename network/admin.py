@@ -5,5 +5,5 @@ from .models import *
 
 admin.site.register(User)
 admin.site.register(newPost)
-#admin.site.register(likes)
+admin.site.register(likePost)
 admin.site.register(UserFollowing)

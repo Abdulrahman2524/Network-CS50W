@@ -1,4 +1,5 @@
-from datetime import datetime
+from collections import Counter
+from itertools import count
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -13,8 +14,22 @@ from .models import *
 
 def index(request):
     all_posts = newPost.objects.all().order_by('-date')
+    user_likes = likePost.objects.filter(user=request.user.id).values_list("post", flat=True)
+    likes = likePost.objects.all().values_list("post", flat=True)
+    num_likes = {}
+    for j in likes:
+        if j in num_likes:
+            num_likes[j] +=1
+        else:
+            num_likes[j] =1
+
+    print(num_likes)
+
+
     return render(request, "network/index.html",{
         "posts": all_posts,
+        "likes": user_likes,
+        "num_likes": num_likes,
         "message": "All Posts",
     })
 
@@ -95,6 +110,7 @@ def profile(request, id):
         "posts": all_posts,
         "following": following.count(),
         "followers" : followers.count(),
+        "myfollowers": followers,
         "id": id,
         "username": username.username
     })
@@ -156,3 +172,57 @@ def followingPosts(request):
         "posts": following_post,
         "message": "Following Posts",
     })
+
+@csrf_exempt
+@login_required
+def postLikes(request, id):
+    if request.method == "GET":
+
+        post = likePost.objects.get(post=id, user=request.user)
+        return JsonResponse(post.serialize())
+
+    elif request.method == "POST":
+
+        post = newPost.objects.get(id=id)
+        data = json.loads(request.body)
+
+        post_like = newPost.objects.get(id=data["post"])
+
+        try:
+            test_like = likePost.objects.get(user=request.user, post=post_like, like=data["like"])
+        except likePost.DoesNotExist:
+            likePost.objects.create(user=request.user, post=post_like, like=data["like"])
+            print(data)
+
+        if test_like:
+            likePost.objects.get(user=request.user, post=post_like, like=data["like"]).delete()
+
+        return HttpResponse(status=204)
+    
+@csrf_exempt
+@login_required
+def editPost(request, id):
+    try:
+        post = newPost.objects.get(id=id)
+            
+    except newPost.DoesNotExist:
+        return JsonResponse({"error": "Not found."}, status=404)
+        
+    if request.method == "GET":
+        return JsonResponse(post.serialize())
+
+    elif request.method == "PUT":
+
+        data = json.loads(request.body)
+        print(data["id"], data["text"])
+        try:
+            edited_post = newPost.objects.get(id=data["id"])
+
+        except newPost.DoesNotExist:
+            return JsonResponse({"error": "Not found."}, status=404)
+
+        if edited_post.text != data["text"]:
+            newPost.objects.filter(id=data["id"]).update(text=data["text"])
+            print("succsses")
+
+    return HttpResponse(status=204)

@@ -36,3 +36,16 @@
 .heart-div {
     display: inline-block;
 }
+.next {
+    position: -webkit-sticky;
+    position: sticky;
+    width: 80px;
+    top: 0;
+    left: 100%;
+    overflow: visible;
+    display: none;
+}
+.stop-scrolling {
+    height: 100%;
+    overflow: hidden;
+  }

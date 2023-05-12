@@ -1,5 +1,3 @@
-from collections import Counter
-from itertools import count
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -9,6 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 import json
+from django.core.paginator import Paginator
 from .models import *
 
 
@@ -23,14 +22,19 @@ def index(request):
         else:
             num_likes[j] =1
 
-    print(num_likes)
+    contact_list = newPost.objects.all().order_by('-date')
+    paginator = Paginator(contact_list, 10) # Show 10 contacts per page.
 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
+    print(page_obj)
     return render(request, "network/index.html",{
         "posts": all_posts,
         "likes": user_likes,
         "num_likes": num_likes,
         "message": "All Posts",
+        "page_obj": page_obj,
     })
 
 
@@ -106,13 +110,25 @@ def profile(request, id):
     following = UserFollowing.objects.filter(user_id=id)
     followers = UserFollowing.objects.filter(following_user_id = id)
     username = User.objects.get(id=id)
+    user_likes = likePost.objects.filter(user=request.user.id).values_list("post", flat=True)
+    likes = likePost.objects.all().values_list("post", flat=True)
+    num_likes = {}
+    for j in likes:
+        if j in num_likes:
+            num_likes[j] +=1
+        else:
+            num_likes[j] =1
+
     return render(request, "network/profile.html",{
-        "posts": all_posts,
+        "page_obj": all_posts,
         "following": following.count(),
         "followers" : followers.count(),
         "myfollowers": followers,
         "id": id,
-        "username": username.username
+        "username": username.username,
+        "likes": user_likes,
+        "num_likes": num_likes,
+
     })
 
 @csrf_exempt
@@ -167,9 +183,19 @@ def followingPosts(request):
 
             following_post.append(i)
                
-    
+    user_likes = likePost.objects.filter(user=request.user.id).values_list("post", flat=True)
+    likes = likePost.objects.all().values_list("post", flat=True)
+    num_likes = {}
+    for j in likes:
+        if j in num_likes:
+            num_likes[j] +=1
+        else:
+            num_likes[j] =1
+
     return render(request, "network/index.html",{
-        "posts": following_post,
+        "page_obj": following_post,
+        "likes": user_likes,
+        "num_likes": num_likes,
         "message": "Following Posts",
     })
 

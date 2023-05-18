@@ -112,6 +112,7 @@ def profile(request, id):
     username = User.objects.get(id=id)
     user_likes = likePost.objects.filter(user=request.user.id).values_list("post", flat=True)
     likes = likePost.objects.all().values_list("post", flat=True)
+    user = User.objects.get(id=id)
     num_likes = {}
     for j in likes:
         if j in num_likes:
@@ -128,7 +129,7 @@ def profile(request, id):
         "username": username.username,
         "likes": user_likes,
         "num_likes": num_likes,
-
+        "user": user,
     })
 
 @csrf_exempt

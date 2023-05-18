@@ -1,22 +1,68 @@
+.post{
+   border-radius: 0; 
+   width: 70%;
+   margin: auto;
+   height: auto;
+}
+.title{
+
+    margin-top: 10px;
+    
+}
+ .link{
+    color: black;
+}
+.link:hover{
+    color: black;
+}
+.username{
+    position: absolute;
+    left: 80px;
+    top: 15px;
+    display: inline-block;
+    color: black;
+    font-weight: bold;
+    font-size: 20px;
+}
+.text{
+    margin-left: 70px;
+    margin-right: 150px;
+    position: absolute;
+    top: 40%;
+    font-size: 16px;
+    color: black;
+
+} .date{
+    position: absolute;
+    right: 10px;
+    top: 75%;
+}
+.share{
+    width: 60%;
+}
 .like-button {
     border-color: white;
     border-width: 0px;
     background-color: white;
     outline-color: white;
     outline: 0 !important;
+    position: relative;
+    top: 15px;
+    left: 65px;
 }
 .like-number {
     margin-left: 5px;
+    font-size: 15px;
 }
 .edit-btn {
     border-color: white;
     border-width: 0px;
     background-color: white;
     outline-color: white;
-    margin-left: 90%;
     font-size: 15px;
     position: absolute;
-    top: 10%;
+    top: 15px;
+    right: 2%;
     width: fit-content;
     height: fit-content;
     color: rgb(154, 1, 1);
@@ -24,6 +70,9 @@
 }
 .edit-area {
     display: none;
+    height: 100%;
+    width: 100%;
+    
 }
 .edit0 {
     width: fit-content;
@@ -36,16 +85,65 @@
 .heart-div {
     display: inline-block;
 }
-.next {
-    position: -webkit-sticky;
-    position: sticky;
-    width: 80px;
-    top: 0;
-    left: 100%;
-    overflow: visible;
-    display: none;
+.posts-profile{
+    color: gray;
+    margin-left: 15px;
+    margin-top: 15px;
 }
-.stop-scrolling {
-    height: 100%;
-    overflow: hidden;
-  }
+.profile{
+    width: 60%;
+    height: auto;
+}
+.profile-name{
+    margin-top: 20px;
+    font-size: 25px;
+    font-weight: bold;
+}
+.following{
+    position: relative;
+    left: 37%;
+    bottom: 31px;
+}
+.followers{
+    position: relative;
+    left: 49%;
+    bottom: 55px;
+    border-left: 1px solid gray;
+    padding-left: 10px;
+}
+.follow-btn{
+    position: absolute;
+    left: 72%;
+    top: 120px;
+}
+.folw{
+    border-bottom-left-radius: 9999px;
+    border-bottom-right-radius: 9999px;
+    border-top-left-radius: 9999px;
+    border-top-right-radius: 9999px;
+    width: 90px;    
+}
+.line{
+    position: relative;
+    bottom: 40px;
+    width: 83%;
+}
+.index-line{
+    width: 83%;
+}
+.posts0{
+    position: relative;
+    left: 21%;
+    font-size: 30px;
+    margin-bottom: 25px;
+    border-bottom: 4px solid rgb(0, 170, 255);
+    border-radius: 4px;
+    width: fit-content;
+}
+.pages-bar{
+    position: absolute;
+    margin-top: 55px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+   
+}

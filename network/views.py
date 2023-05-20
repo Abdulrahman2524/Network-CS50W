@@ -12,8 +12,13 @@ from .models import *
 
 
 def index(request):
+    # get all posts and order them by reverse date
     all_posts = newPost.objects.all().order_by('-date')
+
+    # return the id of posts that user likes it
     user_likes = likePost.objects.filter(user=request.user.id).values_list("post", flat=True)
+    
+    # get the id of posts and number of likes of each post
     likes = likePost.objects.all().values_list("post", flat=True)
     num_likes = {}
     for j in likes:
@@ -22,13 +27,14 @@ def index(request):
         else:
             num_likes[j] =1
 
+    # Pagination 
     contact_list = newPost.objects.all().order_by('-date')
     paginator = Paginator(contact_list, 10) # Show 10 contacts per page.
 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
     print(page_obj)
+
     return render(request, "network/index.html",{
         "posts": all_posts,
         "likes": user_likes,
@@ -92,10 +98,12 @@ def register(request):
 @login_required
 def sharePost(request):
     if request.method == "POST":
+        # get the user and content of the post
         user = request.user
         post = request.POST["post"]
 
-        if post is not None:
+        # check if the content of post is not empty
+        if post != "":
             newPost.objects.create(user=user, text=post)
             return HttpResponseRedirect(reverse("index"))
         else:
@@ -106,13 +114,16 @@ def sharePost(request):
     
 @login_required
 def profile(request, id):
+    # get all posts and order them by reverse date
     all_posts = newPost.objects.filter(user=id).order_by('-date')
+    # get the following and followers of the user
     following = UserFollowing.objects.filter(user_id=id)
     followers = UserFollowing.objects.filter(following_user_id = id)
-    username = User.objects.get(id=id)
+    
+    # return the id of posts that user likes it
     user_likes = likePost.objects.filter(user=request.user.id).values_list("post", flat=True)
+    # get the id of posts and number of likes of each post
     likes = likePost.objects.all().values_list("post", flat=True)
-    user = User.objects.get(id=id)
     num_likes = {}
     for j in likes:
         if j in num_likes:
@@ -120,13 +131,15 @@ def profile(request, id):
         else:
             num_likes[j] =1
 
+    user = User.objects.get(id=id)
+
     return render(request, "network/profile.html",{
         "page_obj": all_posts,
         "following": following.count(),
         "followers" : followers.count(),
         "myfollowers": followers,
         "id": id,
-        "username": username.username,
+        "username": user.username,
         "likes": user_likes,
         "num_likes": num_likes,
         "user": user,
@@ -135,7 +148,7 @@ def profile(request, id):
 @csrf_exempt
 @login_required
 def show_follower(request, id):
-
+    # return specific follower of the user in JsonResponse
     try:
         user = UserFollowing.objects.get(user_id=request.user.id, following_user_id=id)
         
@@ -151,10 +164,12 @@ def show_follower(request, id):
 def follow(request, id):
 
     if request.method == "POST":
+        # get the data and check if the follower already exist
         data = json.loads(request.body)
         following_list = UserFollowing.objects.filter(user_id=request.user, following_user_id=data['following_user_id']).count()
         follower = User.objects.get(pk=data['following_user_id'])
         if following_list == 0:
+            # create the follower
             UserFollowing.objects.create(user_id=request.user, following_user_id=follower)
             print(following_list)
         else:
@@ -167,6 +182,7 @@ def follow(request, id):
 def unFollow(request, id):
         
     if request.method == "POST":
+        # get the data and delete the follower
         data = json.loads(request.body)
         UserFollowing.objects.get(user_id=request.user, following_user_id=data['following_user_id']).delete()
 
@@ -174,8 +190,9 @@ def unFollow(request, id):
 
 @login_required
 def followingPosts(request):
-
+    # get the id of followers of user
     user = UserFollowing.objects.filter(user_id=request.user).values_list("following_user_id", flat=True)
+    # loop over it, get the posts of these users and save it in list
     following_post = []
     for i in range(len(user)):
 
@@ -183,8 +200,10 @@ def followingPosts(request):
         for i in new:
 
             following_post.append(i)
-               
+
+    # return the id of posts that user likes it
     user_likes = likePost.objects.filter(user=request.user.id).values_list("post", flat=True)
+    # get the id of posts and number of likes of each post
     likes = likePost.objects.all().values_list("post", flat=True)
     num_likes = {}
     for j in likes:
@@ -204,7 +223,7 @@ def followingPosts(request):
 @login_required
 def postLikes(request, id):
     if request.method == "GET":
-
+        # return the like of specific post and user
         post = likePost.objects.get(post=id, user=request.user)
         return JsonResponse(post.serialize())
 
@@ -212,15 +231,17 @@ def postLikes(request, id):
 
         post = newPost.objects.get(id=id)
         data = json.loads(request.body)
-
+        # get the post from the sending data
         post_like = newPost.objects.get(id=data["post"])
-
+        # check if the sending data already exist
         try:
             test_like = likePost.objects.get(user=request.user, post=post_like, like=data["like"])
+        # if doesn't exist, create it in the data base  
         except likePost.DoesNotExist:
             likePost.objects.create(user=request.user, post=post_like, like=data["like"])
             print(data)
 
+        # if the data already exist, delete it
         if test_like:
             likePost.objects.get(user=request.user, post=post_like, like=data["like"]).delete()
 
@@ -229,6 +250,7 @@ def postLikes(request, id):
 @csrf_exempt
 @login_required
 def editPost(request, id):
+    # check if the post is exist or not
     try:
         post = newPost.objects.get(id=id)
             
@@ -239,7 +261,7 @@ def editPost(request, id):
         return JsonResponse(post.serialize())
 
     elif request.method == "PUT":
-
+        # get the data and check if the post exist or not
         data = json.loads(request.body)
         print(data["id"], data["text"])
         try:
@@ -248,6 +270,7 @@ def editPost(request, id):
         except newPost.DoesNotExist:
             return JsonResponse({"error": "Not found."}, status=404)
 
+        # if the post exist and it didn't equal to the edited version. Update it
         if edited_post.text != data["text"]:
             newPost.objects.filter(id=data["id"]).update(text=data["text"])
             print("succsses")
